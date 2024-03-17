@@ -8,7 +8,7 @@ const MultiStepForm = () => {
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
-  const [documents, setDocuments] = useState();
+  const [documents, setDocuments] = useState([]);
   const [error, setError] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -37,65 +37,71 @@ const MultiStepForm = () => {
   };
 
   const handleSubmit = async (event) => {
-  event.preventDefault();
+    event.preventDefault();
 
-  // Validate all fields are not empty
-  if (!name || !email || !password || !phone || !address || documents.length === 0) {
-    setError("All fields are required");
-    return;
-  }
+    // Validate all fields
+    if (!name || !email || !password || !phone || !address || documents.length === 0) {
+         alert( "All fields are required"  );
+      return;
+    }
 
-  // Validate email format
-  if (!validateEmail(email)) {
-    setEmailError("Invalid email address");
-    return;
-  }
+    // Validate email format
+    if (!validateEmail(email)) {
+     
+      alert( "Invalid email address");
+      return;
+    }
 
-  // Validate phone format
-  if (!validatePhone(phone)) {
-    setPhoneError("Invalid phone number");
-    return;
-  }
+    // Validate phone format
+    if (!validatePhone(phone)) {
+      alert("Invalid email address");
+      return;
+    }
 
-  // Validate name and address length
-  if (name.length < 6 || address.length < 6) {
-    setError("Name and address must be at least 6 characters long");
-    return;
-  }
+    // Validate name and address length
+    if (name.length < 6 ) {
+      alert("Name must be at least 6 characters long");
+      return;
+    }
+    if (address.length < 6 ) {
+      alert("Address must be at least 6 characters long");
+      return;
+    }
+    try {
+      
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("email", email);
+      formData.append("password", password);
+      formData.append("phone", phone);
+      formData.append("address", address);
+      documents.forEach((file) => formData.append("documents", file));
 
-  try {
-    // Send form data to backend server
-    
-    const response = await axios.post("http://localhost:7777/api/upload", { name,email, password,address,phone,documents });
-    const { success } = response.data;
+      const response = await axios.post("http://localhost:7777/api/uploaddata", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      const { success } = response.data;
 
-    console.log("RESPONSE DATA ", response.data)
-   
-    
-    // console.log("DATA  ");
-    
-    // console.log(name);
-    // console.log(email);
-    // console.log(password);
-    // console.log(address);
-    // console.log(phone);
-    // console.log(documents);
-    setName("");
-    setEmail("");
-    setPassword("");
-    setPhone("");
-    setAddress("");
-    
-    setDocuments("");
-   
-    setError(""); // Clear any previous error
-    alert("Thank you!");
-    setDocuments([]);
-  } catch (error) {
-    console.error("Error submitting form data:", error);
-    setError("Failed to submit form data. Please try again.");
-  }
-};
+      console.log("RESPONSE DATA ", response.data);
+
+     
+      setName("");
+      setEmail("");
+      setPassword("");
+      setPhone("");
+      setAddress("");
+      setDocuments([]);
+      setError(""); 
+      alert("Thank you!");
+    } catch (error) {
+      console.error("Error submitting form data:", error);
+      alert("Error: " + error.message);
+      setError("Failed to submit form data. Please try again.");
+    }
+  };
+
 
   const renderStep = () => {
     switch (step) {
@@ -195,10 +201,11 @@ const MultiStepForm = () => {
               </label>
               <input
                 type="file"
-                id="documents"
+                id="docs"
+                name="documentss"
                 multiple
                 className="w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                onChange={(e) => setDocuments(e.target.files)}
+                onChange={(e) => setDocuments(Array.from(e.target.files))}
               />
             </div>
             <div className="flex justify-between">
